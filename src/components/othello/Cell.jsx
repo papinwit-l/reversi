@@ -12,7 +12,7 @@ export default function Cell({ row, col, value, isValidMove }) {
   return (
     <motion.div
       onClick={handleClick}
-      className="w-14 h-14 flex items-center justify-center bg-slate-900 border border-cyan-900 relative rounded-md overflow-hidden"
+      className="w-full h-full aspect-square flex items-center justify-center bg-slate-900 border border-cyan-900 relative rounded-md overflow-hidden"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3, delay: (row + col) * 0.02 }}
@@ -37,7 +37,7 @@ export default function Cell({ row, col, value, isValidMove }) {
               stiffness: 260,
               damping: 20,
             }}
-            className={`w-10 h-10 rounded-full flex items-center justify-center ${
+            className={`w-[70%] h-[70%] rounded-full flex items-center justify-center ${
               value === 1
                 ? "bg-gradient-to-br from-purple-900 to-purple-600"
                 : "bg-gradient-to-br from-cyan-500 to-cyan-300"
@@ -45,7 +45,7 @@ export default function Cell({ row, col, value, isValidMove }) {
           >
             {/* Inner ring */}
             <div
-              className={`w-6 h-6 rounded-full border-2 ${
+              className={`w-[60%] h-[60%] rounded-full border-2 ${
                 value === 1 ? "border-purple-400" : "border-cyan-200"
               } opacity-70`}
             ></div>
@@ -65,7 +65,7 @@ export default function Cell({ row, col, value, isValidMove }) {
               repeatType: "reverse",
               duration: 1.5,
             }}
-            className="w-3 h-3 rounded-full bg-cyan-400 absolute z-10"
+            className="w-[20%] h-[20%] rounded-full bg-cyan-400 absolute z-10"
           />
         )}
       </AnimatePresence>
