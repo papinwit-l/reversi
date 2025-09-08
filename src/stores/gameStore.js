@@ -1,3 +1,5 @@
+// src/stores/gameStore.js
+
 import { create } from "zustand";
 
 // Initialize an 8x8 board with the starting position

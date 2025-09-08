@@ -1,4 +1,5 @@
-"use client";
+// src/pages/Othello.jsx
+
 import { useEffect } from "react";
 import Board from "@/components/othello/Board";
 import useGameStore from "@/stores/gameStore";

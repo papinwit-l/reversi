@@ -1,4 +1,4 @@
-"use client";
+// src/components/othello/Board.jsx
 
 import useGameStore from "@/stores/gameStore";
 import { motion } from "framer-motion";

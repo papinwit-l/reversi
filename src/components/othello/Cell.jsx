@@ -1,3 +1,5 @@
+// src/components/othello/Cell.jsx
+
 import useGameStore from "@/stores/gameStore";
 import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
