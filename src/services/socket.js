@@ -9,9 +9,7 @@ class SocketService {
 
   connect() {
     // Update this URL to match your backend server
-    this.socket = io(
-      process.env.REACT_APP_SERVER_URL || "http://localhost:3001"
-    );
+    this.socket = io(import.meta.env.VITE_API_URL || "http://localhost:9000");
 
     this.socket.on("connect", () => {
       console.log("Connected to server");

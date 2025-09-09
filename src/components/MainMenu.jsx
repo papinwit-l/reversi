@@ -1,31 +1,26 @@
 // src/components/MainMenu.jsx
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import useOnlineGameStore from "@/stores/onlineGameStore";
 
-export default function MainMenu() {
+export default function MainMenu({ onVSAI, onLocalPlay, onOnlinePlay }) {
   const [playerName, setPlayerName] = useState("");
-  const {
-    setPlayerName: setStoreName,
-    connectToServer,
-    goToLobby,
-    error,
-    clearError,
-    isConnected,
-  } = useOnlineGameStore();
+  const [error, setError] = useState("");
 
-  const handlePlayOnline = () => {
-    if (!playerName.trim()) {
-      return;
-    }
-    setStoreName(playerName.trim());
-    connectToServer();
-    goToLobby();
+  const handleVSAI = () => {
+    if (onVSAI) onVSAI();
   };
 
   const handleLocalPlay = () => {
-    // Navigate to local game - you'll need to implement this in your main App component
-    window.location.href = "/local";
+    if (onLocalPlay) onLocalPlay();
+  };
+
+  const handlePlayOnline = () => {
+    if (!playerName.trim()) {
+      setError("Please enter a player name for online play");
+      return;
+    }
+    setError("");
+    if (onOnlinePlay) onOnlinePlay(playerName.trim());
   };
 
   return (
@@ -72,73 +67,23 @@ export default function MainMenu() {
           </p>
         </motion.div>
 
-        {/* Player name input */}
-        <motion.div
-          className="space-y-2"
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.4 }}
-        >
-          <label className="block text-sm font-semibold text-cyan-400 mb-2">
-            ENTER YOUR NAME
-          </label>
-          <input
-            type="text"
-            value={playerName}
-            onChange={(e) => {
-              setPlayerName(e.target.value);
-              clearError();
-            }}
-            placeholder="Your cosmic handle..."
-            className="w-full px-4 py-3 bg-slate-800 border border-cyan-900 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all duration-300 font-mono"
-            maxLength={20}
-          />
-        </motion.div>
-
-        {/* Error message */}
-        {error && (
-          <motion.div
-            className="bg-red-900/50 border border-red-700 rounded-lg p-3"
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-          >
-            <p className="text-red-400 text-sm font-mono">{error}</p>
-          </motion.div>
-        )}
-
-        {/* Connection status */}
-        {isConnected && (
-          <motion.div
-            className="bg-green-900/50 border border-green-700 rounded-lg p-3"
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-          >
-            <p className="text-green-400 text-sm font-mono">
-              ✓ Connected to server
-            </p>
-          </motion.div>
-        )}
-
         {/* Menu buttons */}
         <motion.div
           className="space-y-4"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
+          transition={{ delay: 0.4 }}
         >
           <motion.button
-            onClick={handlePlayOnline}
-            disabled={!playerName.trim()}
-            className="w-full py-4 bg-gradient-to-r from-cyan-600 to-cyan-500 text-white rounded-lg font-semibold tracking-wider text-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
+            onClick={handleVSAI}
+            className="w-full py-4 bg-gradient-to-r from-red-600 to-red-500 text-white rounded-lg font-semibold tracking-wider text-lg transition-all duration-300"
             whileHover={{
-              scale: playerName.trim() ? 1.02 : 1,
-              boxShadow: playerName.trim()
-                ? "0 0 20px rgba(6, 182, 212, 0.4)"
-                : "none",
+              scale: 1.02,
+              boxShadow: "0 0 20px rgba(239, 68, 68, 0.4)",
             }}
-            whileTap={{ scale: playerName.trim() ? 0.98 : 1 }}
+            whileTap={{ scale: 0.98 }}
           >
-            🌐 PLAY ONLINE
+            🤖 VS AI
           </motion.button>
 
           <motion.button
@@ -152,6 +97,48 @@ export default function MainMenu() {
           >
             🏠 LOCAL PLAY
           </motion.button>
+
+          {/* Online play section */}
+          <motion.div
+            className="space-y-3"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
+          >
+            <input
+              type="text"
+              value={playerName}
+              onChange={(e) => {
+                setPlayerName(e.target.value);
+                setError("");
+              }}
+              placeholder="Enter name for online play..."
+              className="w-full px-4 py-3 bg-slate-800 border border-cyan-900 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all duration-300 font-mono text-sm"
+              maxLength={20}
+            />
+
+            {error && (
+              <motion.div
+                className="text-red-400 text-xs font-mono text-center"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+              >
+                {error}
+              </motion.div>
+            )}
+
+            <motion.button
+              onClick={handlePlayOnline}
+              className="w-full py-4 bg-gradient-to-r from-cyan-600 to-cyan-500 text-white rounded-lg font-semibold tracking-wider text-lg transition-all duration-300"
+              whileHover={{
+                scale: 1.02,
+                boxShadow: "0 0 20px rgba(6, 182, 212, 0.4)",
+              }}
+              whileTap={{ scale: 0.98 }}
+            >
+              🌐 PLAY ONLINE
+            </motion.button>
+          </motion.div>
         </motion.div>
 
         {/* Footer */}
@@ -161,7 +148,7 @@ export default function MainMenu() {
           animate={{ opacity: 1 }}
           transition={{ delay: 0.6 }}
         >
-          Challenge players across the cosmos
+          Challenge AI, friends, or players across the cosmos
         </motion.div>
       </motion.div>
 
@@ -187,6 +174,20 @@ export default function MainMenu() {
         }}
         transition={{
           duration: 6,
+          repeat: Number.POSITIVE_INFINITY,
+          ease: "easeInOut",
+        }}
+      />
+
+      <motion.div
+        className="absolute top-1/3 right-8 w-10 h-10 rounded-full bg-gradient-to-br from-red-500/20 to-orange-500/20 blur-sm"
+        animate={{
+          x: [0, -15, 0],
+          y: [0, 10, 0],
+          scale: [1, 1.1, 1],
+        }}
+        transition={{
+          duration: 7,
           repeat: Number.POSITIVE_INFINITY,
           ease: "easeInOut",
         }}
