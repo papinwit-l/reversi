@@ -6,7 +6,7 @@ import WaitingRoom from "./components/WaitingRoom";
 import OnlineOthello from "./components/OnlineOthello";
 import AIDifficultySelector from "./components/AIDifficultySelector";
 import AIOthello from "./components/AIOthello";
-import Othello from "./pages/Othello"; // Your original local game
+import Othello from "./components/Othello"; // Your original local game
 import useOnlineGameStore from "./stores/onlineGameStore";
 
 function App() {
