@@ -35,6 +35,7 @@ function App() {
   };
 
   const handleBackToMenu = () => {
+    // console.log("Back to menu");
     setGameMode("menu");
     // Reset online game state if needed
     const { goToMenu } = useOnlineGameStore.getState();

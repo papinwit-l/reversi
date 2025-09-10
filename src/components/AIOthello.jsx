@@ -272,8 +272,8 @@ export default function AIOthello({ onBackToMenu }) {
               exit={{ scale: 0.8, opacity: 0 }}
               transition={{ type: "spring", damping: 20, stiffness: 300 }}
             >
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(6,182,212,0.2),transparent_70%)]"></div>
-              <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,rgba(168,85,247,0.2),transparent_70%)]"></div>
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(6,182,212,0.2),transparent_70%)] pointer-events-none"></div>
+              <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,rgba(168,85,247,0.2),transparent_70%)] pointer-events-none"></div>
 
               <motion.h2
                 className="text-2xl sm:text-3xl font-bold mb-4 text-center text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-purple-500"
@@ -334,7 +334,7 @@ export default function AIOthello({ onBackToMenu }) {
                 </div>
               </motion.div>
 
-              <motion.div
+              {/* <motion.div
                 className="flex gap-2"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -353,14 +353,39 @@ export default function AIOthello({ onBackToMenu }) {
                 </motion.button>
 
                 <motion.button
-                  onClick={onBackToMenu}
+                  onClick={() => {
+                    console.log("Back to menu");
+                    onBackToMenu();
+                  }}
                   className="flex-1 py-2 sm:py-3 bg-slate-800 border border-cyan-900 text-cyan-400 rounded-md font-semibold tracking-wider"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
                   BACK TO MENU
                 </motion.button>
-              </motion.div>
+              </motion.div> */}
+
+              <div className="flex gap-2">
+                <button
+                  onClick={() => {
+                    console.log("Play Again - simple");
+                    resetGame();
+                  }}
+                  className="flex-1 py-3 bg-purple-600 text-white rounded-md font-semibold"
+                >
+                  PLAY AGAIN
+                </button>
+
+                <button
+                  onClick={() => {
+                    console.log("Back to menu - simple");
+                    onBackToMenu && onBackToMenu();
+                  }}
+                  className="flex-1 py-3 bg-slate-800 border border-cyan-900 text-cyan-400 rounded-md font-semibold"
+                >
+                  BACK TO MENU
+                </button>
+              </div>
             </motion.div>
           </motion.div>
         )}

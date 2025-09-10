@@ -34,6 +34,9 @@ const useAIGameStore = create((set, get) => ({
   // AI instance
   ai: new OthelloAI("medium"),
 
+  // Track timeouts to clear them properly
+  currentTimeout: null,
+
   // Set AI difficulty
   setAIDifficulty: (difficulty) => {
     set({
@@ -42,9 +45,24 @@ const useAIGameStore = create((set, get) => ({
     });
   },
 
+  // Clear any pending AI timeouts
+  clearAITimeout: () => {
+    const { currentTimeout } = get();
+    if (currentTimeout) {
+      clearTimeout(currentTimeout);
+      set({ currentTimeout: null });
+    }
+  },
+
   // Calculate all valid moves for the current player
   calculateValidMoves: () => {
-    const { board, currentPlayer, isValidMove } = get();
+    const { board, currentPlayer, isValidMove, gameOver } = get();
+
+    // Don't calculate moves if game is over
+    if (gameOver) {
+      return [];
+    }
+
     const moves = [];
 
     // Check all positions on the board
@@ -61,7 +79,11 @@ const useAIGameStore = create((set, get) => ({
     // Check if current player has no valid moves
     if (moves.length === 0) {
       get().handleNoValidMoves();
-    } else if (get().currentPlayer === get().aiPlayer && !get().gameOver) {
+    } else if (
+      get().currentPlayer === get().aiPlayer &&
+      !get().gameOver &&
+      !get().aiThinking
+    ) {
       // AI's turn - make move after a delay
       get().makeAIMove();
     }
@@ -71,14 +93,19 @@ const useAIGameStore = create((set, get) => ({
 
   // Handle case when player has no valid moves
   handleNoValidMoves: () => {
-    const { currentPlayer, aiPlayer, humanPlayer } = get();
+    const { currentPlayer, aiPlayer, humanPlayer, gameOver } = get();
+
+    if (gameOver) return; // Don't process if game is already over
+
     const otherPlayer = currentPlayer === aiPlayer ? humanPlayer : aiPlayer;
 
     // Switch to other player
     set({ currentPlayer: otherPlayer });
 
     // Calculate moves for other player
-    setTimeout(() => {
+    const timeoutId = setTimeout(() => {
+      if (get().gameOver) return; // Check again before processing
+
       const { calculateValidMoves } = get();
       const otherPlayerMoves = calculateValidMoves();
 
@@ -87,13 +114,15 @@ const useAIGameStore = create((set, get) => ({
         get().determineWinner();
       }
     }, 500);
+
+    set({ currentTimeout: timeoutId });
   },
 
   // Make AI move
   makeAIMove: async () => {
-    const { board, validMoves, ai, aiDifficulty, aiThinkingTime } = get();
+    const { board, validMoves, ai, aiDifficulty, gameOver, aiThinking } = get();
 
-    if (validMoves.length === 0) return;
+    if (gameOver || aiThinking || validMoves.length === 0) return;
 
     set({ aiThinking: true });
 
@@ -104,16 +133,32 @@ const useAIGameStore = create((set, get) => ({
     // Add some randomness to thinking time to make it feel more natural
     const actualThinkingTime = thinkingTime + Math.random() * 500;
 
-    setTimeout(() => {
-      const bestMove = ai.getBestMove(board, get().aiPlayer, validMoves);
+    const timeoutId = setTimeout(() => {
+      // Double-check game state before making move
+      const currentState = get();
+      if (
+        currentState.gameOver ||
+        currentState.currentPlayer !== currentState.aiPlayer
+      ) {
+        set({ aiThinking: false, currentTimeout: null });
+        return;
+      }
+
+      const bestMove = ai.getBestMove(
+        currentState.board,
+        currentState.aiPlayer,
+        currentState.validMoves
+      );
 
       if (bestMove) {
         const [row, col] = bestMove;
         get().makeMove(row, col);
       }
 
-      set({ aiThinking: false });
+      set({ aiThinking: false, currentTimeout: null });
     }, actualThinkingTime);
+
+    set({ currentTimeout: timeoutId });
   },
 
   // Check if a move is valid
@@ -165,13 +210,19 @@ const useAIGameStore = create((set, get) => ({
       gameOver,
       humanPlayer,
       aiPlayer,
+      aiThinking,
     } = get();
 
-    // Don't allow moves if game is over or if it's AI's turn and human tries to move
-    if (gameOver || (currentPlayer === aiPlayer && !get().aiThinking))
-      return false;
+    // Don't allow moves if game is over
+    if (gameOver) return false;
+
+    // Don't allow human moves during AI thinking (unless it's the AI making the move)
+    if (aiThinking && currentPlayer === humanPlayer) return false;
 
     if (!isValidMove(row, col)) return false;
+
+    // Clear any pending timeouts
+    get().clearAITimeout();
 
     const newBoard = JSON.parse(JSON.stringify(board));
     newBoard[row][col] = currentPlayer;
@@ -223,11 +274,17 @@ const useAIGameStore = create((set, get) => ({
     }
 
     const nextPlayer = currentPlayer === humanPlayer ? aiPlayer : humanPlayer;
-    set({ board: newBoard, currentPlayer: nextPlayer });
+    set({
+      board: newBoard,
+      currentPlayer: nextPlayer,
+      aiThinking: false, // Ensure AI thinking is cleared
+    });
 
     // Calculate valid moves for next player
     setTimeout(() => {
-      get().calculateValidMoves();
+      if (!get().gameOver) {
+        get().calculateValidMoves();
+      }
     }, 100);
 
     return true;
@@ -236,6 +293,9 @@ const useAIGameStore = create((set, get) => ({
   // Determine the winner based on piece count
   determineWinner: () => {
     const { board } = get();
+
+    // Clear any pending timeouts
+    get().clearAITimeout();
 
     // Count pieces
     const scores = board.reduce(
@@ -258,11 +318,21 @@ const useAIGameStore = create((set, get) => ({
     }
 
     // Set game over state
-    set({ gameOver: true, winner });
+    set({
+      gameOver: true,
+      winner,
+      aiThinking: false, // Ensure AI thinking is cleared
+    });
   },
 
   // Reset the game
   resetGame: () => {
+    console.log("Reset game called");
+
+    // Clear any pending timeouts first
+    get().clearAITimeout();
+
+    // Reset all state
     set({
       board: createInitialBoard(),
       currentPlayer: 1, // Human starts
@@ -270,11 +340,14 @@ const useAIGameStore = create((set, get) => ({
       gameOver: false,
       winner: 0,
       aiThinking: false,
+      currentTimeout: null,
     });
 
     // Calculate valid moves for the starting player
     setTimeout(() => {
-      get().calculateValidMoves();
+      if (!get().gameOver) {
+        get().calculateValidMoves();
+      }
     }, 100);
   },
 
